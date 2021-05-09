@@ -26,10 +26,13 @@ jobs:
       run: dotnet build --no-restore -c Release
       
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build -c Release
 
     - name: Publish package artifact
       uses: actions/upload-artifact@v2
       with:
         name: Nuget Package
-        path: Kana.Pipeline/Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg
+        path: Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg
+        
+    - name: Publish to NuGet
+      run: dotnet nuget push Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
