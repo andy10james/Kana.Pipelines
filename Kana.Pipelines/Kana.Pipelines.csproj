@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Kana</Authors>
+    <PackageProjectUrl>https://github.com/andy10james/Kana.Pipelines</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/andy10james/Kana.Pipelines</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>Pipeline Pattern Middleware Kana</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Description>Functional pipeline classes for building result driven or operation driven, modular pipelines of middleware.</Description>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>
