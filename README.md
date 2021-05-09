@@ -1,5 +1,5 @@
 # Kana.Pipelines
-A functional pipeline classes for building result driven or operation driven, modular pipelines. 
+Functional pipeline classes for building result driven or operation driven, modular pipelines. 
 
 ## Why?
 
