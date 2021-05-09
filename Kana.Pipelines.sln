@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31019.35
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kana.Pipelines", "Kana.Pipelines\Kana.Pipelines.csproj", "{00EBB12A-44E2-4B4E-82BA-07CAAFB951B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kana.Pipelines.Tests", "Kana.Pipelines.Tests\Kana.Pipelines.Tests.csproj", "{8C82D684-0BD1-486B-8C95-6F841D8E51AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00EBB12A-44E2-4B4E-82BA-07CAAFB951B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00EBB12A-44E2-4B4E-82BA-07CAAFB951B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00EBB12A-44E2-4B4E-82BA-07CAAFB951B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00EBB12A-44E2-4B4E-82BA-07CAAFB951B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C82D684-0BD1-486B-8C95-6F841D8E51AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C82D684-0BD1-486B-8C95-6F841D8E51AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C82D684-0BD1-486B-8C95-6F841D8E51AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C82D684-0BD1-486B-8C95-6F841D8E51AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3B20C95-8A77-447B-A94E-B2DE50BF1827}
+	EndGlobalSection
+EndGlobal
