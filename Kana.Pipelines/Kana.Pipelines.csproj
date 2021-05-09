@@ -12,6 +12,16 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Description>Functional pipeline classes for building result driven or operation driven, modular pipelines of middleware.</Description>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <PackageIcon>Icon.png</PackageIcon>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
