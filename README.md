@@ -10,26 +10,27 @@ The pipeline pattern allows you to build reusable, abstract, and self-contained 
 Pipeline definition:
 
 ```csharp
-var authenticationPipeline = new Pipeline<SignIn, string>();
+var authenticationPipeline = new Pipeline<SignInInput, string>();
 
 authenticationPipeline.Add(UserIsDeleted);
 authenticationPipeline.Add(UserIsTemporary);
 authenticationPipeline.Add(CredentialsCorrect);
 
-var result = await usernamePipeline.Run(new User("William", "Riker")); //williamr
+var input = new User("kana_ki_", "randomPassword");
+var output = await usernamePipeline.Run(input);
 ```
 
 Middleware definitions:
 
 ```csharp
-public async Task<string> UserIsDeleted(SignIn signIn, Func<Task<string>> next) {
+public async Task<string> UserIsDeleted(SignInInput signIn, Func<Task<string>> next) {
   if (this.db.FindByUsername(signIn.Username).IsDeleted) {
     return "User deleted";
   }
   return await next();
 }
 
-public async Task<string> UserIsTemporary(SignIn signIn, Func<Task<string>> next) {
+public async Task<string> UserIsTemporary(SignInInput signIn, Func<Task<string>> next) {
   var result = await next();
   if (result == "User authenticated" && this.db.FindByUsername(signIn.Username).IsTemporary) {
     result = "User authenticated temporarily";
@@ -37,7 +38,7 @@ public async Task<string> UserIsTemporary(SignIn signIn, Func<Task<string>> next
   return result;
 }
 
-public async Task<string> CredentialsCorrect(SignIn signIn, Func<Task<string>> next) {
+public async Task<string> CredentialsCorrect(SignInInput signIn, Func<Task<string>> next) {
   if (this.db.FindByUsername(signIn.Username).Password == hash(signIn.Password)) {
     return "User authenticated";
   }
