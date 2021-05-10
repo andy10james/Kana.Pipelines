@@ -16,7 +16,7 @@ authenticationPipeline.Add(UserIsTemporary);
 authenticationPipeline.Add(CredentialsCorrect);
 
 var input = new User("kana_ki_", "randomPassword");
-var output = await usernamePipeline.Run(input);
+var output = await authenticationPipeline.Run(input);
 ```
 
 Middleware definitions:
@@ -45,13 +45,13 @@ public async Task<string> CredentialsCorrect(SignInInput signIn, Func<Task<strin
 }
 ```
 
-In the above example, 3 middleware functions are delcared and is queued in the pipeline in the order `UserIsDeleted`, `UserIsTemporary` and `CredentialsCorrect`. Each middleware in turn has the opportunity to return a result and stop the pipeline from continuing, if it does the result propogates through previous middleware in the pipeline (later middleware would never been run). 
+In the above example, 3 middleware functions are declared and are queued in the pipeline in the order `UserIsDeleted`, `UserIsTemporary` and `CredentialsCorrect`. Each middleware in turn has the opportunity to return a result and stop the pipeline from continuing, if they do the result propogates through the previous middlewares in the pipeline (later middlewares wouldn't run). 
 
 The `UserIsDeleted` middleware immediately concludes the pipeline if the user is deleted, otherwise it calls `next()` to pass on to the next middleware in the pipeline. 
 
-`UserIsTemporary` immediately passes off to the next middleware in the pipeline - the `CredentialsCorrect` middleware that checks the sign in details - but once a result is received from the remainder of the pipeline it checks to see if it was an "User authenticated" result, if so and the user is a temporary user then it modifies the pipeline result to say "User authenticated temporarily". 
+`UserIsTemporary` immediately passes off to the next middleware in the pipeline - the `CredentialsCorrect` middleware that checks the sign in detail. Once a result is received from the remainder of the pipeline it checks to see if it was a "User authenticated" result, if so and the user is a temporary user, then it modifies the pipeline result to say "User authenticated temporarily". 
 
-Each middleware knows nothing about the other middlewares in the pipeline, and such should work even if other middleware is swapped out for alternate middleware. Building out tasks in a Pipeline pattern like this can really help modularise responsibility and functionality, particularly when those tasks are complicated and/or could be achieved in a variety of combinations of operations. 
+Each middleware knows nothing about the other middlewares in the pipeline, and such should work even if other middleware is swapped out for an alternate middleware. Building out tasks in a pipeline pattern like this can really help modularise responsibility and functionality, particularly when those tasks are complicated and/or could be achieved in a variety of combinations of operations. 
 
 ## Features
 
