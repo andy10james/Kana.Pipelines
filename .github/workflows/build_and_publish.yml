@@ -35,4 +35,4 @@ jobs:
         path: Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg
         
     - name: Publish to NuGet
-      run: dotnet nuget push Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push Kana.Pipelines/bin/Release/Kana.Pipelines.*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
