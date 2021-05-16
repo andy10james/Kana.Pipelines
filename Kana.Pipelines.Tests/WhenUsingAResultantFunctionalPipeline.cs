@@ -291,6 +291,72 @@ namespace Kana.Pipelines.Tests
 
         }
 
+
+        [TestFixture]
+        public class AndAddingAnIMiddlewareInstanceToIt
+        {
+
+            private class TestMiddleware : IMiddleware<State, string>
+            {
+                private readonly List<int> _callOrder;
+                private readonly int _i;
+                private readonly string _return;
+
+                public TestMiddleware(List<int> callOrder, int i, string @return)
+                {
+                    this._callOrder = callOrder;
+                    this._i = i;
+                    this._return = @return;
+                }
+
+                public async Task<string> Execute(State state, Func<Task<string>> next)
+                {
+                    this._callOrder?.Add(this._i);
+                    if (this._return == null)
+                    {
+                        var result = await next();
+                        this._callOrder?.Add(this._i);
+                        return result;
+                    }
+                    return this._return;
+                }
+            }
+
+
+            [Test]
+            public void ItDoesNotCreateANewPipeline()
+            {
+                var pipeline = new Pipeline<State, string>()
+                {
+                    new TestMiddleware(null, 1, null),
+                    new TestMiddleware(null, 2, null)
+                };
+
+                var unionPipeline = pipeline.Add(new TestMiddleware(null, 3, "Unnamed"));
+
+                Assert.AreSame(unionPipeline, pipeline);
+            }
+
+            [Test]
+            public void TheNewActionIsRanAsMiddleware()
+            {
+                var orderCalled = new List<int>();
+
+                var pipeline = new Pipeline<State, string>
+                {
+                    new TestMiddleware(orderCalled, 1, null),
+                    new TestMiddleware(orderCalled, 2, null)
+                };
+
+                pipeline.Add(new TestMiddleware(orderCalled, 3, "Unnamed"));
+
+                pipeline.Run(new State("William", "Riker"));
+
+                Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
+            }
+
+        }
+
         [TestFixture]
         public class AndAddingItToAnother
         {
@@ -479,6 +545,72 @@ namespace Kana.Pipelines.Tests
             }
 
         }
+
+
+        [TestFixture]
+        public class AndAddingItToAnIMiddlewareInstance
+        {
+
+            private class TestMiddleware : IMiddleware<State, string>
+            {
+                private readonly List<int> _callOrder;
+                private readonly int _i;
+                private readonly string _return;
+
+                public TestMiddleware(List<int> callOrder, int i, string @return)
+                {
+                    this._callOrder = callOrder;
+                    this._i = i;
+                    this._return = @return;
+                }
+
+                public async Task<string> Execute(State state, Func<Task<string>> next)
+                {
+                    this._callOrder?.Add(this._i);
+                    if (this._return == null)
+                    {
+                        var result = await next();
+                        this._callOrder?.Add(this._i);
+                        return result;
+                    }
+                    return this._return;
+                }
+            }
+
+            [Test]
+            public void ItCreatesANewPipeline()
+            {
+                var pipeline = new Pipeline<State, string>()
+                {
+                    new TestMiddleware(null, 1, null),
+                    new TestMiddleware(null, 2, null)
+                };
+;
+                var unionPipeline = pipeline + new TestMiddleware(null, 3, "unnamed");
+
+                Assert.AreNotSame(unionPipeline, pipeline);
+            }
+
+            [Test]
+            public void TheNewPipelineRunsAUnionOfTheTwo()
+            {
+                var orderCalled = new List<int>();
+
+                var pipeline = new Pipeline<State, string>
+                {
+                    new TestMiddleware(orderCalled, 1, null),
+                    new TestMiddleware(orderCalled, 2, null)
+                };
+
+                var unionPipeline = pipeline + new TestMiddleware(orderCalled, 3, "Unnamed");
+
+                unionPipeline.Run(new State("William", "Riker"));
+
+                Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
+            }
+
+        }
+
 
     }
 }

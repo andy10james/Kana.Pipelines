@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Kana.Pipelines.Tests
 {
@@ -220,6 +221,64 @@ namespace Kana.Pipelines.Tests
         }
 
         [TestFixture]
+        public class AndAddingAnIMiddlewareInstanceToIt
+        {
+
+            private class TestMiddleware : IMiddleware<State>
+            {
+                private readonly List<int> _callOrder;
+                private readonly int _i;
+
+                public TestMiddleware(List<int> callOrder, int i)
+                {
+                    this._callOrder = callOrder;
+                    this._i = i;
+                }
+
+                public async Task Execute(State state, Func<Task> next)
+                {
+                    this._callOrder?.Add(this._i);
+                    await next();
+                    this._callOrder?.Add(this._i);
+                }
+            }
+
+
+            [Test]
+            public void ItDoesNotCreateANewPipeline()
+            {
+                var pipeline = new Pipeline<State>()
+                {
+                    new TestMiddleware(null, 1),
+                    new TestMiddleware(null, 2)
+                };
+
+                var unionPipeline = pipeline.Add(new TestMiddleware(null, 3));
+
+                Assert.AreSame(unionPipeline, pipeline);
+            }
+
+            [Test]
+            public void TheNewActionIsRanAsMiddleware()
+            {
+                var orderCalled = new List<int>();
+
+                var pipeline = new Pipeline<State>
+                {
+                    new TestMiddleware(orderCalled, 1),
+                    new TestMiddleware(orderCalled, 2)
+                };
+
+                pipeline.Add(new TestMiddleware(orderCalled, 3));
+
+                pipeline.Run(new State("random1"));
+
+                Assert.AreEqual(new[] { 1, 2, 3, 3, 2, 1 }, orderCalled);
+            }
+
+        }
+
+        [TestFixture]
         public class AndAddingItToAnother
         {
 
@@ -395,6 +454,64 @@ namespace Kana.Pipelines.Tests
                 unionPipeline.Run(new State("random1"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
+            }
+
+        }
+
+        [TestFixture]
+        public class AndAddingItToAnIMiddlewareInstance
+        {
+
+            private class TestMiddleware : IMiddleware<State>
+            {
+                private readonly List<int> _callOrder;
+                private readonly int _i;
+
+                public TestMiddleware(List<int> callOrder, int i)
+                {
+                    this._callOrder = callOrder;
+                    this._i = i;
+                }
+
+                public async Task Execute(State state, Func<Task> next)
+                {
+                    this._callOrder?.Add(this._i);
+                    await next();
+                    this._callOrder?.Add(this._i);
+                }
+            }
+
+
+            [Test]
+            public void ItCreatesANewPipeline()
+            {
+                var pipeline = new Pipeline<State>()
+                {
+                    new TestMiddleware(null, 1),
+                    new TestMiddleware(null, 2)
+                };
+
+                var unionPipeline = pipeline + new TestMiddleware(null, 3);
+
+                Assert.AreNotSame(unionPipeline, pipeline);
+            }
+
+            [Test]
+            public void TheNewPipelineRunsAUnionOfTheTwo()
+            {
+                var orderCalled = new List<int>();
+
+                var pipeline = new Pipeline<State>
+                {
+                    new TestMiddleware(orderCalled, 1),
+                    new TestMiddleware(orderCalled, 2)
+                };
+
+                var unionPipeline = pipeline + new TestMiddleware(orderCalled, 3);
+
+                unionPipeline.Run(new State("random1"));
+
+                Assert.AreEqual(new[] { 1, 2, 3, 3, 2, 1 }, orderCalled);
             }
 
         }
