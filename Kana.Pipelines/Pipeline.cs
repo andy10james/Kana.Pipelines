@@ -12,6 +12,7 @@ namespace Kana.Pipelines
     {
 
         private readonly ICollection<IMiddleware<TState, TResult>> _middleware;
+        private IServiceProvider _serviceProvider;
 
         #region Constructors
         public Pipeline() =>
@@ -32,6 +33,12 @@ namespace Kana.Pipelines
             this._middleware = new List<IMiddleware<TState, TResult>>(middleware.Select(m => new DelegateMiddleware<TState, TResult>(m)));
         #endregion
 
+        public Pipeline<TState, TResult> WithServiceProvider(IServiceProvider serviceProvider)
+        {
+            this._serviceProvider = serviceProvider;
+            return this;
+        }
+
         #region Pipeline Addition
         public Pipeline<TState, TResult> Add(params Middleware<TState, TResult>[] middleware) =>
             this.Add((IEnumerable<Middleware<TState, TResult>>)middleware);
@@ -44,6 +51,9 @@ namespace Kana.Pipelines
 
         public Pipeline<TState, TResult> Add(params IMiddleware<TState, TResult>[] middlewares) =>
             this.Add((IEnumerable<IMiddleware<TState, TResult>>) middlewares);
+
+        public Pipeline<TState, TResult> Add<TMiddleware>() where TMiddleware : class, IMiddleware<TState, TResult> =>
+            this.Add(new TypeMiddleware<TMiddleware, TState, TResult>(this._serviceProvider));
 
         public Pipeline<TState, TResult> Add(IEnumerable<Middleware<TState, TResult>> middlewares)
         {
@@ -104,7 +114,7 @@ namespace Kana.Pipelines
         }
         #endregion
 
-        public Task<TResult> Run(TState obj) =>
+        public Task<TResult> RunAsync(TState obj) =>
             new PipelineRun<TState, TResult>(this._middleware, obj).RunAsync();
 
         #region Pipeline Enumeration
@@ -122,6 +132,7 @@ namespace Kana.Pipelines
     {
 
         private readonly ICollection<IMiddleware<TState>> _middleware;
+        private IServiceProvider _serviceProvider;
 
         #region Constructors
         public Pipeline() =>
@@ -142,6 +153,12 @@ namespace Kana.Pipelines
             this._middleware = new List<IMiddleware<TState>>(middleware.Select(m => new DelegateMiddleware<TState>(m)));
         #endregion
 
+        public Pipeline<TState> WithServiceProvider(IServiceProvider serviceProvider)
+        {
+            this._serviceProvider = serviceProvider;
+            return this;
+        }
+
         #region Pipeline Addition
         public Pipeline<TState> Add(params Middleware<TState>[] middleware) =>
             this.Add((IEnumerable<Middleware<TState>>) middleware);
@@ -154,6 +171,9 @@ namespace Kana.Pipelines
 
         public Pipeline<TState> Add(params IMiddleware<TState>[] middlewares) =>
             this.Add((IEnumerable<IMiddleware<TState>>) middlewares);
+
+        public Pipeline<TState> Add<TMiddleware>() where TMiddleware : class, IMiddleware<TState> =>
+            this.Add(new TypeMiddleware<TMiddleware, TState>(this._serviceProvider));
 
         public Pipeline<TState> Add(IEnumerable<Middleware<TState>> middlewares)
         {
@@ -213,7 +233,7 @@ namespace Kana.Pipelines
         }
         #endregion
 
-        public Task Run(TState obj) =>
+        public Task RunAsync(TState obj) =>
             new PipelineRun<TState>(this._middleware, obj).RunAsync();
 
         #region Pipeline Enumeration

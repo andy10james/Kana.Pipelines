@@ -14,7 +14,7 @@ namespace Kana.Pipelines
         public DelegateMiddleware(Func<TState, TResult> middleware) =>
             this._middleware = (s, n) => Task.FromResult(middleware(s));
 
-        public Task<TResult> Execute(TState state, Func<Task<TResult>> next) =>
+        public Task<TResult> ExecuteAsync(TState state, Func<Task<TResult>> next) =>
             this._middleware(state, next);
     }
 
@@ -29,7 +29,7 @@ namespace Kana.Pipelines
         public DelegateMiddleware(Action<TState> middleware) =>
             this._middleware = (s, n) => { middleware(s); return n(); };
 
-        public Task Execute(TState state, Func<Task> next) =>
+        public Task ExecuteAsync(TState state, Func<Task> next) =>
             this._middleware(state, next);
 
     }

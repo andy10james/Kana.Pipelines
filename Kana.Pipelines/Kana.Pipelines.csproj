@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.0</TargetFramework>
+    <TargetFramework>netstandard1.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Kana</Authors>
@@ -13,8 +13,11 @@
     <Description>Functional pipeline classes for building result driven or operation driven, modular pipelines of middleware.</Description>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <PackageIcon>Icon.png</PackageIcon>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Version>2.0.0</Version>
+    <UserSecretsId>89182f97-d92a-4bf2-8f25-ad9bc5abb0b7</UserSecretsId>
+    <PackageReleaseNotes>Add support for defining Middleware via injectable types.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +25,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

@@ -20,7 +20,7 @@ namespace Kana.Pipelines
         public Task RunAsync()
         {
             this._currentStep = 0;
-            return this._steps[0].Execute(this._state, NextAsync);
+            return this._steps[0].ExecuteAsync(this._state, NextAsync);
         }
 
         private Task NextAsync()
@@ -28,7 +28,7 @@ namespace Kana.Pipelines
             ++this._currentStep;
             if (this._currentStep >= this._steps.Length)
                 return Task.FromResult(0);
-            return this._steps[this._currentStep].Execute(_state, NextAsync);
+            return this._steps[this._currentStep].ExecuteAsync(_state, NextAsync);
         }
 
     }
@@ -49,7 +49,7 @@ namespace Kana.Pipelines
         public Task<TResult> RunAsync()
         {
             this._currentStep = 0;
-            return this._steps[0].Execute(this._state, NextAsync);
+            return this._steps[0].ExecuteAsync(this._state, NextAsync);
         }
 
         private Task<TResult> NextAsync()
@@ -57,7 +57,7 @@ namespace Kana.Pipelines
             ++this._currentStep;
             if (this._currentStep >= this._steps.Length)
                 return Task.FromResult(default(TResult));
-            return this._steps[this._currentStep].Execute(_state, NextAsync);
+            return this._steps[this._currentStep].ExecuteAsync(_state, NextAsync);
         }
 
     }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace Kana.Pipelines.Tests
         public void Setup() { }
 
         [Test]
-        public void ItPassesStateThroughPipeline()
+        public async Task ItPassesStateThroughPipeline()
         {
             var pipeline = new Pipeline<State, string>();
             pipeline.Add((state, next) => {
@@ -32,11 +33,11 @@ namespace Kana.Pipelines.Tests
                 return next();
             });
 
-            pipeline.Run(new State("Willam", "Riker"));
+            await pipeline.RunAsync(new State("Willam", "Riker"));
         }
 
         [Test]
-        public void ItCallsEachMiddlewareBidirectionally()
+        public async Task ItCallsEachMiddlewareBidirectionally()
         {
             var orderCalled = new List<int>();
 
@@ -61,7 +62,7 @@ namespace Kana.Pipelines.Tests
                     return result;
                 });
 
-            pipeline.Run(new State("William", "Riker"));
+            await pipeline.RunAsync(new State("William", "Riker"));
 
             Assert.AreEqual(new[] { 1, 2, 3, 3, 2, 1 }, orderCalled);
         }
@@ -84,11 +85,10 @@ namespace Kana.Pipelines.Tests
                     return Task.FromResult("Unnamed");
                 });
 
-            var result = await usernamePipeline.Run(new State("William", "Riker"));
+            var result = await usernamePipeline.RunAsync(new State("William", "Riker"));
 
             Assert.AreEqual("williamr", result);
         }
-
 
         [Test]
         public async Task ItReturnsDefaultWhenThePipelineIsExhausted()
@@ -97,20 +97,11 @@ namespace Kana.Pipelines.Tests
 
             var usernamePipeline = new Pipeline<State, string>();
             usernamePipeline.Add(
-                (state, next) =>
-                {
-                    return next();
-                },
-                (state, next) =>
-                {
-                    return next();
-                },
-                (state, next) =>
-                {
-                    return next();
-                });
+                (state, next) => next(),
+                (state, next) => next(),
+                (state, next) => next());
 
-            var result = await usernamePipeline.Run(new State("William", "Riker"));
+            var result = await usernamePipeline.RunAsync(new State("William", "Riker"));
 
             Assert.IsNull(result);
         }
@@ -140,7 +131,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewPipelineIsRanAsMiddleware()
+            public async Task TheNewPipelineIsRanAsMiddleware()
             {
                 var orderCalled = new List<int>();
 
@@ -178,7 +169,7 @@ namespace Kana.Pipelines.Tests
 
                 pipeline.Add(pipeline2);
 
-                pipeline.Run(new State("William", "Riker"));
+                await pipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 4, 4, 3, 2, 1 }, orderCalled);
             }
@@ -204,7 +195,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewFuncIsRanAsMiddleware()
+            public async Task TheNewFuncIsRanAsMiddleware()
             {
                 var orderCalled = new List<int>();
 
@@ -232,7 +223,7 @@ namespace Kana.Pipelines.Tests
                         return result;
                     });
 
-                pipeline.Run(new State("William", "Riker"));
+                await pipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 3, 2, 1 }, orderCalled);
             }
@@ -258,7 +249,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewFuncIsRanAsMiddleware()
+            public async Task TheNewFuncIsRanAsMiddleware()
             {
                 var orderCalled = new List<int>();
 
@@ -284,7 +275,7 @@ namespace Kana.Pipelines.Tests
                         return "Unnamed";
                     });
 
-                pipeline.Run(new State("William", "Riker"));
+                await pipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
             }
@@ -309,7 +300,7 @@ namespace Kana.Pipelines.Tests
                     this._return = @return;
                 }
 
-                public async Task<string> Execute(State state, Func<Task<string>> next)
+                public async Task<string> ExecuteAsync(State state, Func<Task<string>> next)
                 {
                     this._callOrder?.Add(this._i);
                     if (this._return == null)
@@ -338,7 +329,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewActionIsRanAsMiddleware()
+            public async Task TheNewActionIsRanAsMiddleware()
             {
                 var orderCalled = new List<int>();
 
@@ -350,9 +341,135 @@ namespace Kana.Pipelines.Tests
 
                 pipeline.Add(new TestMiddleware(orderCalled, 3, "Unnamed"));
 
-                pipeline.Run(new State("William", "Riker"));
+                await pipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
+            }
+
+        }
+
+        [TestFixture]
+        public class AndAddingAMiddlewareTypeToIt
+        {
+
+            private class TestMiddleware : IMiddleware<List<int>, string>
+            {
+                private readonly int _i;
+                private readonly string _return;
+
+                public TestMiddleware()
+                {
+                    this._i = 3;
+                    this._return = "Unnamed";
+                }
+
+                public TestMiddleware(int i, string @return)
+                {
+                    this._i = i;
+                    this._return = @return;
+                }
+
+                public async Task<string> ExecuteAsync(List<int> state, Func<Task<string>> next)
+                {
+                    state?.Add(this._i);
+                    if (this._return == null)
+                    {
+                        var result = await next();
+                        state?.Add(this._i);
+                        return result;
+                    }
+                    return this._return;
+                }
+            }
+
+            [Test]
+            public void ItDoesNotCreateANewPipeline()
+            {
+                var pipeline = new Pipeline<List<int>, string>()
+                {
+                    new TestMiddleware(1, null),
+                    new TestMiddleware(2, null)
+                };
+
+                var unionPipeline = pipeline.Add<TestMiddleware>();
+
+                Assert.AreSame(unionPipeline, pipeline);
+            }
+
+            [Test]
+            public async Task TheNewActionIsRanAsMiddleware()
+            {
+                var orderCalled = new List<int>();
+
+                var pipeline = new Pipeline<List<int>, string>
+                    {
+                        new TestMiddleware(1, null),
+                        new TestMiddleware(2, null)
+                    };
+
+                pipeline.Add<TestMiddleware>();
+
+                await pipeline.RunAsync(orderCalled);
+
+                Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
+            }
+
+            [TestFixture]
+            private class AndNoServiceProviderProvided
+            {
+
+                [Test]
+                public void ItThrowsWhenThereIsNoParameterlessConstructor()
+                {
+                    var pipeline = new Pipeline<object, string>();
+                    pipeline.Add<NoParameterlessConstructor>();
+
+                    Assert.ThrowsAsync<TypeInitializationException>(async () =>
+                    {
+                        await pipeline.RunAsync(null);
+                    });
+                }
+
+                private class NoParameterlessConstructor : IMiddleware<object, string>
+                {
+                    public NoParameterlessConstructor(object thing) { }
+                    public Task<string> ExecuteAsync(object state, Func<Task<string>> next) { return next(); }
+                }
+
+            }
+
+            [TestFixture]
+            private class AndServiceProviderProvided
+            {
+
+
+                [Test]
+                public async Task ItResolvesAndExecutesTheMiddlewareFromTheServiceProvider()
+                {
+                    var serviceCollection = new ServiceCollection();
+                    serviceCollection.AddTransient<IService, Service>();
+                    serviceCollection.AddTransient<NoParameterlessConstructor>();
+
+                    var serviceProvider = serviceCollection.BuildServiceProvider();
+
+                    var pipeline = new Pipeline<object, string>()
+                        .WithServiceProvider(serviceProvider)
+                        .Add<NoParameterlessConstructor>();
+
+                    var result = await pipeline.RunAsync(null);
+                    Assert.AreEqual("Unnamed", result);
+                }
+
+                private interface IService { string Get { get; } }
+                private class Service : IService { public string Get => "Unnamed"; }
+                private class NoParameterlessConstructor : IMiddleware<object, string>
+                {
+                    private readonly IService _service;
+                    public NoParameterlessConstructor(IService service) =>
+                        this._service = service;
+                    public Task<string> ExecuteAsync(object state, Func<Task<string>> next) { return Task.FromResult(this._service.Get); }
+                }
+
             }
 
         }
@@ -383,7 +500,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewPipelineRunsAUnionOfTheTwo()
+            public async Task TheNewPipelineRunsAUnionOfTheTwo()
             {
                 var orderCalled = new List<int>();
 
@@ -421,7 +538,7 @@ namespace Kana.Pipelines.Tests
 
                 var unionPipeline = pipeline + pipeline2;
 
-                unionPipeline.Run(new State("William", "Riker"));
+                await unionPipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 4, 4, 3, 2, 1 }, orderCalled);
             }
@@ -448,7 +565,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewPipelineRunsAUnionOfTheTwo()
+            public async Task TheNewPipelineRunsAUnionOfTheTwo()
             {
                 var orderCalled = new List<int>();
 
@@ -481,7 +598,7 @@ namespace Kana.Pipelines.Tests
 
                 var unionPipeline = pipeline + middleware;
 
-                unionPipeline.Run(new State("William", "Riker"));
+                await unionPipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 3, 2, 1 }, orderCalled);
             }
@@ -508,7 +625,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewPipelineRunsAUnionOfTheTwo()
+            public async Task TheNewPipelineRunsAUnionOfTheTwo()
             {
                 var orderCalled = new List<int>();
 
@@ -539,7 +656,7 @@ namespace Kana.Pipelines.Tests
 
                 var unionPipeline = pipeline + middleware;
 
-                unionPipeline.Run(new State("William", "Riker"));
+                await unionPipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
             }
@@ -564,7 +681,7 @@ namespace Kana.Pipelines.Tests
                     this._return = @return;
                 }
 
-                public async Task<string> Execute(State state, Func<Task<string>> next)
+                public async Task<string> ExecuteAsync(State state, Func<Task<string>> next)
                 {
                     this._callOrder?.Add(this._i);
                     if (this._return == null)
@@ -592,7 +709,7 @@ namespace Kana.Pipelines.Tests
             }
 
             [Test]
-            public void TheNewPipelineRunsAUnionOfTheTwo()
+            public async Task TheNewPipelineRunsAUnionOfTheTwo()
             {
                 var orderCalled = new List<int>();
 
@@ -604,7 +721,7 @@ namespace Kana.Pipelines.Tests
 
                 var unionPipeline = pipeline + new TestMiddleware(orderCalled, 3, "Unnamed");
 
-                unionPipeline.Run(new State("William", "Riker"));
+                await unionPipeline.RunAsync(new State("William", "Riker"));
 
                 Assert.AreEqual(new[] { 1, 2, 3, 2, 1 }, orderCalled);
             }
